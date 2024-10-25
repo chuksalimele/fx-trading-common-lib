@@ -75,13 +75,13 @@ public class ManagedOrder extends AbstractOrder {
 
         if (target_price > 0) {
             this.targetOrderIDList.add(
-                    OrderIDFamily.createTargetOrderID(this, req_identifier)
+                    OrderIDFamily.createModifyTargetOrderID(this, req_identifier)
             );
         }
 
         if (stoploss_price > 0) {
             this.stoplossOrderIDList.add(
-                    OrderIDFamily.createStoplossOrderID(this, req_identifier)
+                    OrderIDFamily.createModifyStoplossOrderID(this, req_identifier)
             );
         }
 
