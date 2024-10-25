@@ -1,0 +1,4 @@
+2024-10-09 13:11:04 [main] ERROR fix.channel.AccountHandler - This is an error
+2024-10-09 13:11:04 [main] ERROR fix.channel.AccountHandler - The is the error i caught
+java.lang.IllegalStateException: The is another error
+	at fix.channel.AccountHandler.main(AccountHandler.java:728)
