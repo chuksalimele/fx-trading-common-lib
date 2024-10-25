@@ -21,7 +21,7 @@ public interface OrderActionListener {
     void onModifiedPendingOrder(Order order);
     void onOrderSendFailed(Order order, String errMsg);
     void onOrderRemoteError(Order order, String errMsg);
-    void onOrderNotAvailable(String errMsg, String message_identifier);
+    void onOrderNotAvailable(String req_identifier, String errMsg);
     void onAddAllOpenOrders(List<Order> orders);
     void onAddAllPendingOrders(List<Order> orders);
     void onAddAllHistoryOrders(List<Order> orders);

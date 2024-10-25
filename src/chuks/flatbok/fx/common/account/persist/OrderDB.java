@@ -44,6 +44,7 @@ public class OrderDB {
             = "CREATE TABLE IF NOT EXISTS open_orders ("
             + " order_id TEXT PRIMARY KEY,"
             + " account_number INTEGER NOT NULL,"
+            + " request_identifier TEST NULL,"                        
             + " symbol TEXT NOT NULL,"
             + " open_price REAL NOT NULL,"
             + " digits REAL NOT NULL,"
@@ -286,13 +287,14 @@ public class OrderDB {
     }
 
     public static synchronized LinkedList<ManagedOrder> getOpenOrderList() {
-        String sql = "SELECT order_id, symbol, open_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time FROM open_orders";
+        String sql = "SELECT order_id,account_number, request_identifier,symbol, open_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time FROM open_orders";
         LinkedList<ManagedOrder> orders = new LinkedList<>();
 
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 String orderID = rs.getString("order_id");
                 int accountNumber = rs.getInt("account_number");
+                String request_identifier = rs.getString("request_identifier");
                 String symbol = rs.getString("symbol");
                 double openPrice = rs.getDouble("open_price");
                 int digits = rs.getInt("digits");
@@ -305,7 +307,7 @@ public class OrderDB {
                 Date openTime = rs.getTimestamp("open_time");
 
                 SymbolInfo symbolInfo = new SymbolInfo(symbol, digits, 0, 0); // Adjust this to match your SymbolInfo constructor
-                ManagedOrder order = new ManagedOrder(accountNumber, symbolInfo, side, targetPrice, stoplossPrice);
+                ManagedOrder order = new ManagedOrder(request_identifier, accountNumber, symbolInfo, side, targetPrice, stoplossPrice);
                 order.setOrderID(orderID);
                 order.setOpenPrice(openPrice);
                 order.setLotSize(lotSize);
@@ -362,12 +364,13 @@ public class OrderDB {
     }
 
     public static synchronized LinkedList<ManagedOrder> getHistoryOrderList() {
-        String sql = "SELECT order_id, symbol, open_price, close_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time, close_time FROM history_orders";
+        String sql = "SELECT order_id, account_number, request_identifier, symbol, open_price, close_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time, close_time FROM history_orders";
         LinkedList<ManagedOrder> orders = new LinkedList<>();
 
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 int accountNumber = rs.getInt("account_number");
+                String request_identifier = rs.getString("request_identifier");
                 String orderID = rs.getString("order_id");
                 String symbol = rs.getString("symbol");
                 double openPrice = rs.getDouble("open_price");
@@ -383,7 +386,7 @@ public class OrderDB {
                 Date closeTime = rs.getTimestamp("close_time");
 
                 SymbolInfo symbolInfo = new SymbolInfo(symbol, digits, 0, 0); // Adjust this to match your SymbolInfo constructor
-                ManagedOrder order = new ManagedOrder(accountNumber, symbolInfo, side, targetPrice, stoplossPrice);
+                ManagedOrder order = new ManagedOrder(request_identifier, accountNumber, symbolInfo, side, targetPrice, stoplossPrice);
                 order.setOrderID(orderID);
                 order.setOpenPrice(openPrice);
                 order.setClosePrice(closePrice);

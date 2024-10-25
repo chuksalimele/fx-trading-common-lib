@@ -3,28 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/AbstractOrder.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/Order.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/listener/OrderActionListener.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/log/LogConst.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/log/LogReader.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/persist/OrderDB.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/profile/BasicAccountProfile.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/profile/TraderAccountProfile.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/listener/ConnectionListener.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/ManagedOrder.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/SymbolInfo.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/log/LogEntry.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/OnceAccessStore.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/OrderIDFamily.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/listener/OrderActionAdapter.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/OrderException.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/log/LogLevel.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/util/EmailUtils.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/profile/UserType.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/profile/ClientIPInfo.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/profile/AdminProfile.java</file>
-            <file>file:/C:/Users/user/Documents/NetBeansProjects/fix-trading-common-lib/src/chuks/flatbok/fx/common/account/order/Config.java</file>
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/fx-trading-common-lib/src/chuks/flatbok/fx/common/account/order/OrderIDFamily.java</file>
         </group>
     </open-files>
 </project-private>

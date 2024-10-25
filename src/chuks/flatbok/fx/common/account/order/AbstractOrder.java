@@ -230,23 +230,23 @@ abstract class AbstractOrder {
     }
 
     public String getMarketOrderRequestIdentifier() {
-        return marketOrderRequestIdentifier;
+        return OrderIDFamily.getMarketOrderRequestIdentifier(orderID);
     }
 
     public String getPendingOrderRequestIdentifier() {
-        return pendingOrderRequestIdentifier;
+        return OrderIDFamily.getPendingOrderRequestIdentifier(orderID);
     }
 
     public String getModifyOrderRequestIdentifier() {
-        return modifiyOrderRequestIdentifier;
+        return OrderIDFamily.getModifyOrderRequestIdentifier(orderID);
     }
 
     public String getDeleteOrderRequestIdentifier() {
-        return deleteOrderRequestIdentifier;
+        return OrderIDFamily.getDeleteOrderRequestIdentifier(orderID);
     }
 
     public String getCloseOrderRequestIdentifier() {
-        return closeOrderRequestIdentifier;
+        return OrderIDFamily.getCloseOrderRequestIdentifier(orderID);
     }
 
     public void setTicket(long ticket) {

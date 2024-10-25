@@ -15,87 +15,93 @@ import java.util.logging.Logger;
  *
  * @author user
  */
-public class ManagedOrder extends AbstractOrder{
-
-
+public class ManagedOrder extends AbstractOrder {
 
     private int accountNumber;
 
     private final List<String> stoplossOrderIDList = new LinkedList(); //list of modified stoploss orders
     private final List<String> targetOrderIDList = new LinkedList(); //list of modified target orders
-    private final List<String> closeOrderIDList = new LinkedList(); //list of closed orders - when users click to close the orders or uses EA or any other means outsid TP and SL
+    private final List<String> closeOrderIDList = new LinkedList(); //list of closed orders - when users click to close the orders or uses EA or any other means outside TP and SL
+    private final List<String> deletedOrderIDList = new LinkedList(); //list of deleted pending orders - when users click to delete the orders or uses EA or any other means outside TP and SL
     private final List<String> stoplossOrderIDCancelProcessingList = new LinkedList();
     private final List<String> targetOrderIDCancelProcessingList = new LinkedList();
 
-
-    public ManagedOrder(ManagedOrder order) throws OrderException {        
-        this(order.accountNumber, order.symbolInfo, order.side, order.targetPrice, order.stoplossPrice);
+    public ManagedOrder(String req_identifier, ManagedOrder order) throws OrderException {
+        this(req_identifier, order.accountNumber, order.symbolInfo, order.side, order.targetPrice, order.stoplossPrice);
     }
 
-    public ManagedOrder(int account_number, SymbolInfo symbol_info, char side, double target_price, double stoploss_price) throws OrderException {
+    public ManagedOrder(String req_identifier, int account_number, SymbolInfo symbol_info, char side, double target_price, double stoploss_price) throws OrderException {
         try {
             this.accountNumber = account_number;
             this.symbolInfo = symbol_info;
             this.pip_point = symbol_info.getPipPoint();
             this.side = side;
-            this.finalizeInit(target_price, stoploss_price);
+            this.finalizeInit(req_identifier, target_price, stoploss_price);
         } catch (SQLException ex) {
             Logger.getLogger(ManagedOrder.class.getName()).log(Level.SEVERE, null, ex);
             throw new OrderException(ex);
         }
     }
 
-    public ManagedOrder(int account_number, String str) throws OrderException, SQLException {
+    public ManagedOrder(String req_identifier, int account_number, String str) throws OrderException, SQLException {
 
         this.accountNumber = account_number;
         this.setFields(str);
-        finalizeInit(targetPrice, stoplossPrice);
+        finalizeInit(req_identifier, targetPrice, stoplossPrice);
     }
 
-    private void finalizeInit(double target_price, double stoploss_price) throws SQLException, OrderException {
-        this.orderID = OrderIDFamily.createMarketOrderID(accountNumber);
-        this.ticket = OrderIDFamily.getTicket(this.orderID);
-        modifyTPAndSL(target_price, stoploss_price);
+    private void finalizeInit(String req_identifier, double target_price, double stoploss_price) throws SQLException, OrderException {
+
+        switch (side) {
+            case Order.Side.BUY, Order.Side.SELL -> {
+                this.orderID = OrderIDFamily.createMarketOrderID(accountNumber, req_identifier);
+                this.ticket = OrderIDFamily.getMarketOrderTicket(this.orderID);
+            }
+            case Order.Side.BUY_STOP, Order.Side.SELL_STOP, Order.Side.BUY_LIMIT, Order.Side.SELL_LIMIT -> {
+                this.orderID = OrderIDFamily.createPendingOrderID(accountNumber, req_identifier);
+                this.ticket = OrderIDFamily.getPendingOrderTicket(this.orderID);
+            }
+            default -> throw new OrderException("Unknow order type");
+        }
+
+        modifyTPAndSL(req_identifier, target_price, stoploss_price);
         //finally
         validateOrder();
     }
 
-    public void convertToMarketOrder() {
-        if (side == Side.BUY_LIMIT || side == Side.BUY_STOP) {
-            side = Side.BUY;
-        } else if (side == Side.SELL_LIMIT || side == Side.SELL_STOP) {
-            side = Side.SELL;
-        }
-    }
-
-    private void modifyTPAndSL(double target_price, double stoploss_price) throws SQLException {
+    private void modifyTPAndSL(String req_identifier, double target_price, double stoploss_price) throws SQLException {
         this.targetPrice = target_price;
         this.stoplossPrice = stoploss_price;
 
         if (target_price > 0) {
             this.targetOrderIDList.add(
-                    OrderIDFamily.createTargetOrderID(this)
+                    OrderIDFamily.createTargetOrderID(this, req_identifier)
             );
         }
 
         if (stoploss_price > 0) {
             this.stoplossOrderIDList.add(
-                    OrderIDFamily.createStoplossOrderID(this)
+                    OrderIDFamily.createStoplossOrderID(this, req_identifier)
             );
         }
 
     }
 
-    public String markForCloseAndGetID() throws SQLException {
-        String close_order_id = OrderIDFamily.createCloseOrderID(this);
+    public String markForCloseAndGetID(String req_identifier) throws SQLException {
+        String close_order_id = OrderIDFamily.createCloseOrderID(this, req_identifier);
         this.closeOrderIDList.add(close_order_id);
         return close_order_id;
     }
-
-    public void modifyOrder(double target_pips, double stoploss_pips) throws SQLException {
-        modifyTPAndSL(target_pips, stoploss_pips);
+    
+    public String markForDeleteAndGetID(String req_identifier) throws SQLException {
+        String deleted_order_id = OrderIDFamily.createDeleteOrderID(this, req_identifier);
+        this.deletedOrderIDList.add(deleted_order_id);
+        return deleted_order_id;
     }
 
+    public void modifyOrder(String req_identifier, double target_pips, double stoploss_pips) throws SQLException {
+        modifyTPAndSL(req_identifier, target_pips, stoploss_pips);
+    }
 
     public int getAccountNumber() {
         return accountNumber;
@@ -113,6 +119,10 @@ public class ManagedOrder extends AbstractOrder{
         return closeOrderIDList;
     }
 
+    public List getDeletedOrderIDList() {
+        return deletedOrderIDList;
+    }    
+
     public void removeTargetOrderID(String clOrdID) {
         targetOrderIDList.remove(clOrdID);
     }
@@ -125,6 +135,10 @@ public class ManagedOrder extends AbstractOrder{
         closeOrderIDList.remove(clOrdID);
     }
 
+    public void removeDeletedOrderID(String clOrdID) {
+        deletedOrderIDList.remove(clOrdID);
+    }    
+
     public String getLastStoplossOrderID() {
         return stoplossOrderIDList.getLast();
     }
@@ -135,6 +149,10 @@ public class ManagedOrder extends AbstractOrder{
 
     public String getLastCloseOrderID() {
         return closeOrderIDList.getLast();
+    }
+        
+    public String getLastDeletedOrderID() {
+        return deletedOrderIDList.getLast();
     }
 
     public List getStoplossOrderIDCancelProcessingList() {

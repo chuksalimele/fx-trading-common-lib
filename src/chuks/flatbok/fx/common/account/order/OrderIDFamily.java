@@ -207,6 +207,16 @@ public class OrderIDFamily {
     static public String createTargetOrderID(ManagedOrder order, String request_identifier) throws SQLException {
         return createTargetOrderID(order.getOrderID(), request_identifier);
     }
+    
+    static public String createModifyHedgeOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
+        return  marketOrPendingOrderID + COMMA_SEP
+                + STR__MODIFY_HEDGE_ORDER_ID + DASH_SEP + OrderDB.getNewID()+ COMMA_SEP
+                + STR__MODIFY_HEDGE_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
+    }
+
+    static public String createModifyHedgeOrderID(ManagedOrder order, String request_identifier) throws SQLException {
+        return createModifyHedgeOrderID(order.getOrderID(), request_identifier);
+    }
 
     static public String createDeleteOrderID(String pendingOrderID, String request_identifier) throws SQLException {
         return  pendingOrderID + COMMA_SEP
@@ -247,6 +257,26 @@ public class OrderIDFamily {
             int suffix_b = Integer.parseInt(extractUniqueSuffix(b));
             return Integer.compare(suffix_a, suffix_b);
         });
+    }
+
+    static String getMarketOrderRequestIdentifier(String orderID) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static String getPendingOrderRequestIdentifier(String orderID) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static String getModifyOrderRequestIdentifier(String orderID) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static String getDeleteOrderRequestIdentifier(String orderID) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static String getCloseOrderRequestIdentifier(String orderID) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     public static class RelatedIDs {
