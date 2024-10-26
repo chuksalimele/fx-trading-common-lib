@@ -31,19 +31,19 @@ import java.util.List;
             return pendingOrderID;
         }
 
-        public List<String> getModifyStoplossIDOrderIDs() {
+        public List<String> getModifyStoplossOrderIDs() {
             return modifyStoplossOrderIDs;
         }
 
-        public List<String> getModifyTargetIDOrderIDs() {
+        public List<String> getModifyTargetOrderIDs() {
             return modifyTargetOrderIDs;
         }
 
-        public List<String> getModifyEntryPriceIDlossOrderIDs() {
+        public List<String> getModifyEntryPriceOrderIDs() {
             return modifyEntryPriceOrderIDs;
         }
 
-        public List<String> getDeleteIDOrderIDs() {
+        public List<String> getDeleteOrderIDs() {
             return deleteOrderIDs;
         }
 

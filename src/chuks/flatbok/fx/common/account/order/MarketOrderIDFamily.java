@@ -30,15 +30,15 @@ import java.util.List;
             return marketOrderID;
         }
 
-        public List<String> getModifyStoplossIDOrderIDs() {
+        public List<String> getModifyStoplossOrderIDs() {
             return modifyStoplossOrderIDs;
         }
 
-        public List<String> getModifyTargetIDlossOrderIDs() {
+        public List<String> getModifyTargetOrderIDs() {
             return modifyTargetOrderIDs;
         }
 
-        public List<String> getCloseIDOrderIDs() {
+        public List<String> getCloseOrderIDs() {
             return closeOrderIDs;
         }
     }
