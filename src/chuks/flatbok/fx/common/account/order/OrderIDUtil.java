@@ -7,7 +7,11 @@ package chuks.flatbok.fx.common.account.order;
 import chuks.flatbok.fx.common.account.persist.OrderDB;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  ** The class is responsible for market order ID and Pending Order ID and its
@@ -30,7 +34,7 @@ import java.util.List;
  *
  * @author user
  */
-public class OrderIDFamily {
+public class OrderIDUtil {
 
     private static String STR_ACCCOUNT_NO = "account-no";
 
@@ -63,78 +67,116 @@ public class OrderIDFamily {
     private static String DASH_SEP = "_";
     private static String COMMA_SEP = "_";
 
-    static private String decodeBaseOrderIDFrom(String relatedOrderID, String match) {
-              
-        String[] comma_split = relatedOrderID.split(COMMA_SEP);
+    static private String decodeBaseOrderIDFrom(String clOrderID, String match) {
+
+        String[] comma_split = clOrderID.split(COMMA_SEP);
         StringBuilder str = new StringBuilder();
         for (String token : comma_split) {
             str.append(token);
             if (token.startsWith(match)) {
                 str.append(token);
                 return str.toString();
-            }else{
+            } else {
                 str.append(token).append(COMMA_SEP);
             }
         }
-        
+
         return null;
     }
-    static private String decodeMarketOrderIDFrom(String relatedOrderID) {
-         return decodeBaseOrderIDFrom(relatedOrderID, STR_SEND_MARKET_ORDER_TICKET);
-    }
-    static private String decodePendingOrderIDFrom(String relatedOrderID) {
-         return decodeBaseOrderIDFrom(relatedOrderID, STR_SEND_PENDING_ORDER_TICKET);
+
+    static private String decodeMarketOrderIDFrom(String clOrderID) {
+        return decodeBaseOrderIDFrom(clOrderID, STR_SEND_MARKET_ORDER_TICKET);
     }
 
-    static public List<RelatedIDs> groupByRelatedOrderID(List<String> order_ids) {
-        ArrayList<RelatedIDs> relatedIDList = new ArrayList();
+    static private String decodePendingOrderIDFrom(String clOrderID) {
+        return decodeBaseOrderIDFrom(clOrderID, STR_SEND_PENDING_ORDER_TICKET);
+    }
+
+    static public List<MarketOrderIDFamily> groupByMarketOrderIDFamily(List<String> order_ids) {
+
+        Map<String, MarketOrderIDFamily> idMap = new LinkedHashMap();
 
         for (int i = 0; i < order_ids.size(); i++) {
-
-            String market_id = decodeMarketOrderIDFrom(order_ids.get(i));
-            if (market_id == null) {
-                continue;
+            String clOrderId = order_ids.get(i);
+            if (isMarketOrderID(clOrderId)) {
+                var family = idMap.getOrDefault(clOrderId,
+                        new MarketOrderIDFamily(clOrderId));
+                
+                idMap.put(clOrderId, family);
+            } else if (isStoplossOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new MarketOrderIDFamily(marketId));
+                
+                family.modifyStoplossOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            } else if (isTargetOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new MarketOrderIDFamily(marketId));
+                
+                family.modifyTargetOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            } else if (isCloseOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new MarketOrderIDFamily(marketId));
+                
+                family.closeOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
             }
-
-            List<String> st_ids = new ArrayList();
-            List<String> tg_ids = new ArrayList();
-            List<String> cl_ids = new ArrayList();
-
-            //get its last stoploss, target and close order attached to it
-            for (int k = 0; k < order_ids.size(); k++) {
-                if (i == k) {
-                    continue;
-                }
-
-                String ord_id = order_ids.get(k);
-
-                if (!isRelatedToMarketID(market_id, ord_id)) {
-                    continue;
-                }
-
-                if (isStoplossOrderID(ord_id)) {
-                    st_ids.add(ord_id);
-                } else if (isTargetOrderID(ord_id)) {
-                    tg_ids.add(ord_id);
-                } else if (isCloseOrderID(ord_id)) {
-                    cl_ids.add(ord_id);
-                }
-            }
-
-            arrangeByNewer(st_ids);
-            arrangeByNewer(tg_ids);
-            arrangeByNewer(cl_ids);
-
-            RelatedIDs relatedID = new RelatedIDs(market_id, tg_ids, st_ids, cl_ids);
-            relatedIDList.add(relatedID);
-
         }
 
-        return relatedIDList;
+        return new LinkedList(idMap.values());
     }
 
-    static public boolean isRelatedID(String relatedOrderID, String match_name) {
-        String[] comma_split = relatedOrderID.split(COMMA_SEP);
+    static public List<PendingOrderIDFamily> groupByPendinOrderIDFamily(List<String> order_ids) {
+
+        Map<String, PendingOrderIDFamily> idMap = new LinkedHashMap();
+
+        for (int i = 0; i < order_ids.size(); i++) {
+            String clOrderId = order_ids.get(i);
+            if (isMarketOrderID(clOrderId)) {
+                var family = idMap.getOrDefault(clOrderId,
+                        new PendingOrderIDFamily(clOrderId));
+                
+                idMap.put(clOrderId, family);
+            } else if (isStoplossOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new PendingOrderIDFamily(marketId));
+                
+                family.modifyStoplossOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            } else if (isTargetOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new PendingOrderIDFamily(marketId));
+                
+                family.modifyTargetOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            }  else if (isEntryPriceOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new PendingOrderIDFamily(marketId));
+                
+                family.modifyEntryPriceOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            } else if (isDeleteOrderID(clOrderId)) {
+                String marketId = decodeMarketOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(clOrderId,
+                        new PendingOrderIDFamily(marketId));
+                
+                family.deleteOrderIDs.add(clOrderId);
+                idMap.put(marketId, family);
+            }
+        }
+
+        return new LinkedList(idMap.values());
+    }
+
+    static public boolean checkID(String clOrderID, String match_name) {
+        String[] comma_split = clOrderID.split(COMMA_SEP);
         for (String token : comma_split) {
             String[] dash_split = token.split(DASH_SEP);
             String name = dash_split[0];
@@ -158,20 +200,36 @@ public class OrderIDFamily {
         return null;
     }
 
-    static public boolean isStoplossOrderID(String relatedOrderID) {
-        return isRelatedID(relatedOrderID, STR_MODIFY_STOPLOSS_ORDER_ID);
+    static public boolean isMarketOrderID(String clOrderID) {
+        return decodeMarketOrderIDFrom(clOrderID).equals(clOrderID);
     }
 
-    static public boolean isTargetOrderID(String relatedOrderID) {
-        return isRelatedID(relatedOrderID, STR_MODIFY_TARGET_ORDER_ID);
+    static public boolean isPendingOrderID(String clOrderID) {
+        return decodePendingOrderIDFrom(clOrderID).equals(clOrderID);
     }
 
-    static public boolean isCloseOrderID(String relatedOrderID) {
-        return isRelatedID(relatedOrderID, STR_CLOSE_MARKET_ORDER_ID);
+    static public boolean isStoplossOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_MODIFY_STOPLOSS_ORDER_ID);
     }
 
-    static public boolean isDeleteOrderID(String relatedOrderID) {
-        return isRelatedID(relatedOrderID, STR_DELETE_PENDING_ORDER_ID);
+    static public boolean isTargetOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_MODIFY_TARGET_ORDER_ID);
+    }
+
+    static public boolean isCloseOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_CLOSE_MARKET_ORDER_ID);
+    }
+
+    static public boolean isEntryPriceOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_MODIFY_ENTRY_PRICE_ORDER_ID);
+    }
+
+    static public boolean isModifyHedgeOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_MODIFY_HEDGE_ORDER_ID);
+    }
+
+    static public boolean isDeleteOrderID(String clOrderID) {
+        return checkID(clOrderID, STR_DELETE_PENDING_ORDER_ID);
     }
 
     static public int getAccountNumberFromOrderID(String clOrdId) {
@@ -220,7 +278,7 @@ public class OrderIDFamily {
     }
 
     static public String createModifyStoplossOrderID(ManagedOrder order, String request_identifier) throws SQLException {
-        return OrderIDFamily.createModifyStoplossOrderID(order.getOrderID(), request_identifier);
+        return OrderIDUtil.createModifyStoplossOrderID(order.getOrderID(), request_identifier);
     }
 
     static public String createModifyTargetOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
@@ -230,7 +288,7 @@ public class OrderIDFamily {
     }
 
     static public String createModifyTargetOrderID(ManagedOrder order, String request_identifier) throws SQLException {
-        return OrderIDFamily.createModifyTargetOrderID(order.getOrderID(), request_identifier);
+        return OrderIDUtil.createModifyTargetOrderID(order.getOrderID(), request_identifier);
     }
 
     static public String createModifyEntryPriceOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
@@ -240,7 +298,7 @@ public class OrderIDFamily {
     }
 
     static public String createModifyEntryPriceOrderID(ManagedOrder order, String request_identifier) throws SQLException {
-        return OrderIDFamily.createModifyEntryPriceOrderID(order.getOrderID(), request_identifier);
+        return OrderIDUtil.createModifyEntryPriceOrderID(order.getOrderID(), request_identifier);
     }
 
     static public String createModifyHedgeOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
@@ -273,25 +331,9 @@ public class OrderIDFamily {
         return createCloseOrderID(order.getOrderID(), request_identifier);
     }
 
-    static private String extractUniqueSuffix(String relatedOrderID) {
-        String[] split = relatedOrderID.split(SEPARATOR);
-        if (split.length < 4) {
-            return null;
-        }
-        return split[3];
-    }
-
     static private boolean isRelatedToMarketID(String market_id, String ord_id) {
         String decoded_id = decodeMarketOrderIDFrom(ord_id);
         return market_id.equals(decoded_id);
-    }
-
-    static private void arrangeByNewer(List<String> ids) {
-        ids.sort((String a, String b) -> {
-            int suffix_a = Integer.parseInt(extractUniqueSuffix(a));
-            int suffix_b = Integer.parseInt(extractUniqueSuffix(b));
-            return Integer.compare(suffix_a, suffix_b);
-        });
     }
 
     static String getMarketOrderRequestIdentifier(String orderID) {
@@ -307,18 +349,18 @@ public class OrderIDFamily {
     static String getModifyOrderRequestIdentifier(String orderID) {
         //first check if is target modification
         String val = getValue(orderID, STR_MODIFY_TARGET_ORDER_REQUEST_ID);
-        if(val == null){
+        if (val == null) {
             //ok now check if is stoploss modification
             val = getValue(orderID, STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID);
         }
-        if(val == null){
+        if (val == null) {
             //ok now check if is entry price modification for the case of pending order
             val = getValue(orderID, STR_MODIFY_ENTRY_PRICE_ORDER_REQUEST_ID);
-        } 
-        if(val == null){
+        }
+        if (val == null) {
             //ok now check if is hedge order modification for the case hedge account
             val = getValue(orderID, STR_MODIFY_HEDGE_ORDER_REQUEST_ID);
-        }        
+        }
         return val;
     }
 
@@ -332,34 +374,4 @@ public class OrderIDFamily {
         return val;
     }
 
-    public static class RelatedIDs {
-
-        String marketOrderID;
-        List<String> targetOrderIDs;
-        List<String> stoplossOrderIDs;
-        List<String> closeOrderIDs;
-
-        private RelatedIDs(String market_id, List<String> tg_ids, List<String> st_ids, List<String> cl_ids) {
-            marketOrderID = market_id;
-            targetOrderIDs = tg_ids;
-            stoplossOrderIDs = st_ids;
-            closeOrderIDs = cl_ids;
-        }
-
-        public String getMarketOrderID() {
-            return marketOrderID;
-        }
-
-        public List<String> getStoplossOrderIDList() {
-            return stoplossOrderIDs;
-        }
-
-        public List<String> getTargetOrderIDList() {
-            return targetOrderIDs;
-        }
-
-        public List<String> getCloseOrderIDList() {
-            return closeOrderIDs;
-        }
-    }
 }

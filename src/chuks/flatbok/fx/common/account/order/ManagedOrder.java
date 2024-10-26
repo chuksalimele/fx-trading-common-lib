@@ -54,12 +54,12 @@ public class ManagedOrder extends AbstractOrder {
 
         switch (side) {
             case Order.Side.BUY, Order.Side.SELL -> {
-                this.orderID = OrderIDFamily.createMarketOrderID(accountNumber, req_identifier);
-                this.ticket = OrderIDFamily.getMarketOrderTicket(this.orderID);
+                this.orderID = OrderIDUtil.createMarketOrderID(accountNumber, req_identifier);
+                this.ticket = OrderIDUtil.getMarketOrderTicket(this.orderID);
             }
             case Order.Side.BUY_STOP, Order.Side.SELL_STOP, Order.Side.BUY_LIMIT, Order.Side.SELL_LIMIT -> {
-                this.orderID = OrderIDFamily.createPendingOrderID(accountNumber, req_identifier);
-                this.ticket = OrderIDFamily.getPendingOrderTicket(this.orderID);
+                this.orderID = OrderIDUtil.createPendingOrderID(accountNumber, req_identifier);
+                this.ticket = OrderIDUtil.getPendingOrderTicket(this.orderID);
             }
             default -> throw new OrderException("Unknow order type");
         }
@@ -75,26 +75,26 @@ public class ManagedOrder extends AbstractOrder {
 
         if (target_price > 0) {
             this.targetOrderIDList.add(
-                    OrderIDFamily.createModifyTargetOrderID(this, req_identifier)
+                    OrderIDUtil.createModifyTargetOrderID(this, req_identifier)
             );
         }
 
         if (stoploss_price > 0) {
             this.stoplossOrderIDList.add(
-                    OrderIDFamily.createModifyStoplossOrderID(this, req_identifier)
+                    OrderIDUtil.createModifyStoplossOrderID(this, req_identifier)
             );
         }
 
     }
 
     public String markForCloseAndGetID(String req_identifier) throws SQLException {
-        String close_order_id = OrderIDFamily.createCloseOrderID(this, req_identifier);
+        String close_order_id = OrderIDUtil.createCloseOrderID(this, req_identifier);
         this.closeOrderIDList.add(close_order_id);
         return close_order_id;
     }
     
     public String markForDeleteAndGetID(String req_identifier) throws SQLException {
-        String deleted_order_id = OrderIDFamily.createDeleteOrderID(this, req_identifier);
+        String deleted_order_id = OrderIDUtil.createDeleteOrderID(this, req_identifier);
         this.deletedOrderIDList.add(deleted_order_id);
         return deleted_order_id;
     }
