@@ -6,8 +6,6 @@ package chuks.flatbok.fx.common.account.order;
 
 import chuks.flatbok.fx.common.account.persist.OrderDB;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,8 +13,8 @@ import java.util.Map;
 
 /**
  ** The class is responsible for market order ID and Pending Order ID and its
- * related orders which are * Stoploss , Target and Close orders. * Below is the
- * structure of the ID
+ * related orders which are Stoploss , Target, Delete and Close orders * Below
+ * is the structure of the ID
  *
  * account-no_[value], send-market-order-id_[value],
  * send-market-order-ticket_[value], send-market-order-request-id_[value],
@@ -36,43 +34,42 @@ import java.util.Map;
  */
 public class OrderIDUtil {
 
-    private static String STR_ACCCOUNT_NO = "account-no";
+    private static final String STR_ACCCOUNT_NO = "account-no";
 
-    private static String STR_SEND_MARKET_ORDER_ID = "send-market-order-id";
-    private static String STR_SEND_MARKET_ORDER_REQUEST_ID = "send-market-order-request-id";
-    private static String STR_SEND_MARKET_ORDER_TICKET = "send-market-order-ticket";
+    private static final String STR_SEND_MARKET_ORDER_ID = "send-market-order-id";
+    private static final String STR_SEND_MARKET_ORDER_REQUEST_ID = "send-market-order-request-id";
+    private static final String STR_SEND_MARKET_ORDER_TICKET = "send-market-order-ticket";
 
-    private static String STR_SEND_PENDING_ORDER_ID = "send-pending-order-id";
-    private static String STR_SEND_PENDING_ORDER_REQUEST_ID = "send-pending-order-request-id";
-    private static String STR_SEND_PENDING_ORDER_TICKET = "send-pending-order-ticket";
+    private static final String STR_SEND_PENDING_ORDER_ID = "send-pending-order-id";
+    private static final String STR_SEND_PENDING_ORDER_REQUEST_ID = "send-pending-order-request-id";
+    private static final String STR_SEND_PENDING_ORDER_TICKET = "send-pending-order-ticket";
 
-    private static String STR_MODIFY_STOPLOSS_ORDER_ID = "modify-stoploss-order-id";
-    private static String STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID = "modify-stoploss-order-request-id";
+    private static final String STR_MODIFY_STOPLOSS_ORDER_ID = "modify-stoploss-order-id";
+    private static final String STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID = "modify-stoploss-order-request-id";
 
-    private static String STR_MODIFY_TARGET_ORDER_ID = "modify-target-order-id";
-    private static String STR_MODIFY_TARGET_ORDER_REQUEST_ID = "modify-target-order-request-id";
+    private static final String STR_MODIFY_TARGET_ORDER_ID = "modify-target-order-id";
+    private static final String STR_MODIFY_TARGET_ORDER_REQUEST_ID = "modify-target-order-request-id";
 
-    private static String STR_MODIFY_ENTRY_PRICE_ORDER_ID = "modify-entry-price-order-id";
-    private static String STR_MODIFY_ENTRY_PRICE_ORDER_REQUEST_ID = "modify-entry-price-order-request-id";
+    private static final String STR_MODIFY_ENTRY_PRICE_ORDER_ID = "modify-entry-price-order-id";
+    private static final String STR_MODIFY_ENTRY_PRICE_ORDER_REQUEST_ID = "modify-entry-price-order-request-id";
 
-    private static String STR_MODIFY_HEDGE_ORDER_ID = "modify-hedge-order-id";
-    private static String STR_MODIFY_HEDGE_ORDER_REQUEST_ID = "modify-hedge-order-request-id";
+    private static final String STR_MODIFY_HEDGE_ORDER_ID = "modify-hedge-order-id";
+    private static final String STR_MODIFY_HEDGE_ORDER_REQUEST_ID = "modify-hedge-order-request-id";
 
-    private static String STR_DELETE_PENDING_ORDER_ID = "delete-pending-order-id";
-    private static String STR_DELETE_PENDING_ORDER_REQUEST_ID = "delete-pending-order-request-id";
+    private static final String STR_DELETE_PENDING_ORDER_ID = "delete-pending-order-id";
+    private static final String STR_DELETE_PENDING_ORDER_REQUEST_ID = "delete-pending-order-request-id";
 
-    private static String STR_CLOSE_MARKET_ORDER_ID = "close-market-order-id";
-    private static String STR_CLOSE_MARKET_ORDER_REQUEST_ID = "close-market-order-request-id";
+    private static final String STR_CLOSE_MARKET_ORDER_ID = "close-market-order-id";
+    private static final String STR_CLOSE_MARKET_ORDER_REQUEST_ID = "close-market-order-request-id";
 
-    private static String DASH_SEP = "_";
-    private static String COMMA_SEP = "_";
+    private static final String DASH_SEP = "_";
+    private static final String COMMA_SEP = ",";
 
     static private String decodeBaseOrderIDFrom(String clOrderID, String match) {
 
         String[] comma_split = clOrderID.split(COMMA_SEP);
         StringBuilder str = new StringBuilder();
         for (String token : comma_split) {
-            str.append(token);
             if (token.startsWith(match)) {
                 str.append(token);
                 return str.toString();
@@ -101,27 +98,29 @@ public class OrderIDUtil {
             if (isMarketOrderID(clOrderId)) {
                 var family = idMap.getOrDefault(clOrderId,
                         new MarketOrderIDFamily(clOrderId));
-                
+
                 idMap.put(clOrderId, family);
             } else if (isStoplossOrderID(clOrderId)) {
                 String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
+                var family = idMap.getOrDefault(marketId,
                         new MarketOrderIDFamily(marketId));
-                
+
                 family.modifyStoplossOrderIDs.add(clOrderId);
                 idMap.put(marketId, family);
             } else if (isTargetOrderID(clOrderId)) {
+
                 String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
+
+                var family = idMap.getOrDefault(marketId,
                         new MarketOrderIDFamily(marketId));
-                
+
                 family.modifyTargetOrderIDs.add(clOrderId);
                 idMap.put(marketId, family);
             } else if (isCloseOrderID(clOrderId)) {
                 String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
+                var family = idMap.getOrDefault(marketId,
                         new MarketOrderIDFamily(marketId));
-                
+
                 family.closeOrderIDs.add(clOrderId);
                 idMap.put(marketId, family);
             }
@@ -130,45 +129,45 @@ public class OrderIDUtil {
         return new LinkedList(idMap.values());
     }
 
-    static public List<PendingOrderIDFamily> groupByPendinOrderIDFamily(List<String> order_ids) {
+    static public List<PendingOrderIDFamily> groupByPendingOrderIDFamily(List<String> order_ids) {
 
         Map<String, PendingOrderIDFamily> idMap = new LinkedHashMap();
 
         for (int i = 0; i < order_ids.size(); i++) {
             String clOrderId = order_ids.get(i);
-            if (isMarketOrderID(clOrderId)) {
+            if (isPendingOrderID(clOrderId)) {
                 var family = idMap.getOrDefault(clOrderId,
                         new PendingOrderIDFamily(clOrderId));
-                
+
                 idMap.put(clOrderId, family);
             } else if (isStoplossOrderID(clOrderId)) {
-                String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
-                        new PendingOrderIDFamily(marketId));
-                
+                String pendingId = decodePendingOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(pendingId,
+                        new PendingOrderIDFamily(pendingId));
+
                 family.modifyStoplossOrderIDs.add(clOrderId);
-                idMap.put(marketId, family);
+                idMap.put(pendingId, family);
             } else if (isTargetOrderID(clOrderId)) {
-                String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
-                        new PendingOrderIDFamily(marketId));
-                
+                String pendingId = decodePendingOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(pendingId,
+                        new PendingOrderIDFamily(pendingId));
+
                 family.modifyTargetOrderIDs.add(clOrderId);
-                idMap.put(marketId, family);
-            }  else if (isEntryPriceOrderID(clOrderId)) {
-                String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
-                        new PendingOrderIDFamily(marketId));
-                
+                idMap.put(pendingId, family);
+            } else if (isEntryPriceOrderID(clOrderId)) {
+                String pendingId = decodePendingOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(pendingId,
+                        new PendingOrderIDFamily(pendingId));
+
                 family.modifyEntryPriceOrderIDs.add(clOrderId);
-                idMap.put(marketId, family);
+                idMap.put(pendingId, family);
             } else if (isDeleteOrderID(clOrderId)) {
-                String marketId = decodeMarketOrderIDFrom(clOrderId);
-                var family = idMap.getOrDefault(clOrderId,
-                        new PendingOrderIDFamily(marketId));
-                
+                String pendingId = decodePendingOrderIDFrom(clOrderId);
+                var family = idMap.getOrDefault(pendingId,
+                        new PendingOrderIDFamily(pendingId));
+
                 family.deleteOrderIDs.add(clOrderId);
-                idMap.put(marketId, family);
+                idMap.put(pendingId, family);
             }
         }
 
