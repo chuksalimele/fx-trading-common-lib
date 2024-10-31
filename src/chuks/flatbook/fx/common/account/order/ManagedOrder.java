@@ -20,14 +20,18 @@ public class ManagedOrder extends AbstractOrder {
     private int accountNumber;
 
     private final List<String> stoplossOrderIDList = new LinkedList(); //list of modified stoploss orders
-    private final List<String> targetOrderIDList = new LinkedList(); //list of modified target orders
+    private final List<String> takeProfitOrderIDList = new LinkedList(); //list of modified target orders
     private final List<String> closeOrderIDList = new LinkedList(); //list of closed orders - when users click to close the orders or uses EA or any other means outside TP and SL
     private final List<String> deletedOrderIDList = new LinkedList(); //list of deleted pending orders - when users click to delete the orders or uses EA or any other means outside TP and SL
-    private final List<String> stoplossOrderIDCancelProcessingList = new LinkedList();
-    private final List<String> targetOrderIDCancelProcessingList = new LinkedList();
+    private final List<String> cancelledStoplossOrderIDList = new LinkedList();
+    private final List<String> cancelledTargetOrderIDList = new LinkedList(); 
+    private double _lastTakeProfitPrice;
+    private double _lastStoplossPrice;
+    
+
 
     public ManagedOrder(String req_identifier, ManagedOrder order) throws OrderException {
-        this(req_identifier, order.accountNumber, order.symbolInfo, order.side, order.targetPrice, order.stoplossPrice);
+        this(req_identifier, order.accountNumber, order.symbolInfo, order.side, order.takeProfitPrice, order.stoplossPrice);
     }
 
     public ManagedOrder(String req_identifier, int account_number, SymbolInfo symbol_info, char side, double target_price, double stoploss_price) throws OrderException {
@@ -47,7 +51,7 @@ public class ManagedOrder extends AbstractOrder {
 
         this.accountNumber = account_number;
         this.setFields(str);
-        finalizeInit(req_identifier, targetPrice, stoplossPrice);
+        finalizeInit(req_identifier, takeProfitPrice, stoplossPrice);
     }
 
     private void finalizeInit(String req_identifier, double target_price, double stoploss_price) throws SQLException, OrderException {
@@ -64,20 +68,18 @@ public class ManagedOrder extends AbstractOrder {
             default -> throw new OrderException("Unknow order type");
         }
 
-        modifyTPAndSL(req_identifier, target_price, stoploss_price);
+        modifySL(req_identifier, stoploss_price);
+        modifyTP(req_identifier, target_price);
+        
         //finally
         validateOrder();
     }
 
-    private void modifyTPAndSL(String req_identifier, double target_price, double stoploss_price) throws SQLException {
-        this.targetPrice = target_price;
-        this.stoplossPrice = stoploss_price;
 
-        if (target_price > 0) {
-            this.targetOrderIDList.add(
-                    OrderIDUtil.createModifyTargetOrderID(this, req_identifier)
-            );
-        }
+
+    private void modifySL(String req_identifier, double stoploss_price) throws SQLException {
+        this._lastStoplossPrice = this.stoplossPrice;
+        this.stoplossPrice = stoploss_price;
 
         if (stoploss_price > 0) {
             this.stoplossOrderIDList.add(
@@ -85,6 +87,37 @@ public class ManagedOrder extends AbstractOrder {
             );
         }
 
+    }
+
+    private void modifyTP(String req_identifier, double target_price) throws SQLException {
+        this._lastTakeProfitPrice = this.takeProfitPrice;
+        this.takeProfitPrice = target_price;
+
+        if (target_price > 0) {
+            this.takeProfitOrderIDList.add(
+                    OrderIDUtil.createModifyTargetOrderID(this, req_identifier)
+            );
+        }
+
+    }
+
+    public void undoLastStoplossModify() {
+        //do this first
+        if(this.stoplossPrice > 0){
+            this.stoplossOrderIDList.removeLast();
+        }
+        //then this
+        this.stoplossPrice = this._lastStoplossPrice;                
+    }
+    
+    public void undoLastTakeProfitModify() {
+        //do this first
+        if(this.takeProfitPrice > 0){
+            this.takeProfitOrderIDList.removeLast();
+        }
+        
+        //then this
+        this.takeProfitPrice = this._lastTakeProfitPrice;             
     }
 
     public String markForCloseAndGetID(String req_identifier) throws SQLException {
@@ -99,8 +132,12 @@ public class ManagedOrder extends AbstractOrder {
         return deleted_order_id;
     }
 
-    public void modifyOrder(String req_identifier, double target_pips, double stoploss_pips) throws SQLException {
-        modifyTPAndSL(req_identifier, target_pips, stoploss_pips);
+    public void modifyTakeProfit(String req_identifier, double target_pips) throws SQLException {
+        modifyTP(req_identifier, target_pips);
+    }
+
+    public void modifyStoploss(String req_identifier, double stoploss_pips) throws SQLException {
+        modifySL(req_identifier, stoploss_pips);
     }
 
     public int getAccountNumber() {
@@ -111,8 +148,8 @@ public class ManagedOrder extends AbstractOrder {
         return stoplossOrderIDList;
     }
 
-    public List getTargetOrderIDList() {
-        return targetOrderIDList;
+    public List getTakeProfitOrderIDList() {
+        return takeProfitOrderIDList;
     }
 
     public List getCloseOrderIDList() {
@@ -123,28 +160,21 @@ public class ManagedOrder extends AbstractOrder {
         return deletedOrderIDList;
     }    
 
-    public void removeTargetOrderID(String clOrdID) {
-        targetOrderIDList.remove(clOrdID);
+
+    public List getCancelledStoplossOrderIDList() {
+        return cancelledStoplossOrderIDList;
     }
 
-    public void removeStoplossOrderID(String clOrdID) {
-        stoplossOrderIDList.remove(clOrdID);
+    public List getCancelledTakeProfitOrderIDList() {
+        return cancelledTargetOrderIDList;
     }
-
-    public void removeCloseOrderID(String clOrdID) {
-        closeOrderIDList.remove(clOrdID);
-    }
-
-    public void removeDeletedOrderID(String clOrdID) {
-        deletedOrderIDList.remove(clOrdID);
-    }    
 
     public String getLastStoplossOrderID() {
         return stoplossOrderIDList.getLast();
     }
 
-    public String getLastTargetOrderID() {
-        return targetOrderIDList.getLast();
+    public String getLastTakeProfitOrderID() {
+        return takeProfitOrderIDList.getLast();
     }
 
     public String getLastCloseOrderID() {
@@ -155,36 +185,26 @@ public class ManagedOrder extends AbstractOrder {
         return deletedOrderIDList.getLast();
     }
 
-    public List getStoplossOrderIDCancelProcessingList() {
-        return stoplossOrderIDCancelProcessingList;
+    public void cancelStoplossOrderID(String clOrdID) {
+        stoplossOrderIDList.remove(clOrdID);
+        cancelledStoplossOrderIDList.add(clOrdID);
     }
 
-    public List getTargetOrderIDCancelProcessingList() {
-        return targetOrderIDCancelProcessingList;
+    public void cancelTakeProfitOrderID(String clOrdID) {
+        takeProfitOrderIDList.remove(clOrdID);
+        cancelledTargetOrderIDList.add(clOrdID);
     }
 
-    public void removeStoplossOrderIDCancelProcessingList(String clOrdID) {
-        stoplossOrderIDCancelProcessingList.remove(clOrdID);
+    public void removeTakeProfitOrderID(String clOrdID) {
+        takeProfitOrderIDList.remove(clOrdID);
     }
 
-    public void removeTargetOrderIDCancelProcessingList(String clOrdID) {
-        targetOrderIDCancelProcessingList.remove(clOrdID);
-    }
-
-    public void removeStoplossOrderIDList(String clOrdID) {
+    public void removeStoplossOrderID(String clOrdID) {
         stoplossOrderIDList.remove(clOrdID);
     }
 
-    public void removeTargetOrderIDList(String clOrdID) {
-        targetOrderIDList.remove(clOrdID);
-    }
-
-    public void addTargetOrderIDCancelProcessing(String clOrdID) {
-        targetOrderIDCancelProcessingList.add(clOrdID);
-    }
-
-    public void addStoplossOrderIDCancelProcessing(String clOrdID) {
-        stoplossOrderIDCancelProcessingList.add(clOrdID);
+    public void removeCloseOrderID(String clOrdID) {
+        closeOrderIDList.remove(clOrdID);
     }
 
 }

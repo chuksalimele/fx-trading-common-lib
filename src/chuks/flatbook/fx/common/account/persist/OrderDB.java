@@ -225,105 +225,6 @@ public class OrderDB {
         }
     }
 
-    public static synchronized void insertOpenOrder(ManagedOrder order) {
-        String insertSQL = "INSERT INTO open_orders(order_id, account_number, open_price, close_price, digits, lot_size, side, symbol, target_price, stoploss_price, commission, swap, open_time, close_time) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = dataSource.getConnection(); PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
-            pstmt.setString(1, order.getOrderID());
-            pstmt.setInt(2, order.getAccountNumber());
-            pstmt.setDouble(3, order.getOpenPrice());
-            pstmt.setDouble(4, order.getClosePrice());
-            pstmt.setInt(5, order.getSymbolDigits());
-            pstmt.setDouble(6, order.getLotSize());
-            pstmt.setString(7, String.valueOf(order.getSide()));
-            pstmt.setString(8, order.getSymbol());
-            pstmt.setDouble(9, order.getTargetPrice());
-            pstmt.setDouble(10, order.getStoplossPrice());
-            pstmt.setDouble(11, order.getCommission());
-            pstmt.setDouble(12, order.getSwap());
-            pstmt.setLong(13, order.getOpenTime() != null ? order.getOpenTime().getTime() : 0);
-            pstmt.setLong(14, order.getCloseTime() != null ? order.getCloseTime().getTime() : 0);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public static synchronized void replaceOpenOrderList(LinkedList<ManagedOrder> orders) {
-        String deleteSql = "DELETE FROM open_orders";
-        String insertSql = "INSERT INTO open_orders(order_id, account_number, symbol, open_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time) VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
-
-            // Delete all rows
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(deleteSql);
-            }
-
-            // Insert new orders
-            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-                for (ManagedOrder order : orders) {
-                    pstmt.setString(1, order.getOrderID());
-                    pstmt.setInt(2, order.getAccountNumber());
-                    pstmt.setString(3, order.getSymbol());
-                    pstmt.setDouble(4, order.getOpenPrice());
-                    pstmt.setInt(5, order.getSymbolDigits());
-                    pstmt.setDouble(6, order.getLotSize());
-                    pstmt.setString(7, String.valueOf(order.getSide()));
-                    pstmt.setDouble(8, order.getTargetPrice());
-                    pstmt.setDouble(9, order.getStoplossPrice());
-                    pstmt.setDouble(10, order.getCommission());
-                    pstmt.setDouble(11, order.getSwap());
-                    pstmt.setTimestamp(12, new Timestamp(order.getOpenTime().getTime()));
-                    pstmt.executeUpdate();
-                }
-            }
-
-            conn.commit();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public static synchronized LinkedList<ManagedOrder> getOpenOrderList() {
-        String sql = "SELECT order_id,account_number, request_identifier,symbol, open_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time FROM open_orders";
-        LinkedList<ManagedOrder> orders = new LinkedList<>();
-
-        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String orderID = rs.getString("order_id");
-                int accountNumber = rs.getInt("account_number");
-                String request_identifier = rs.getString("request_identifier");
-                String symbol = rs.getString("symbol");
-                double openPrice = rs.getDouble("open_price");
-                int digits = rs.getInt("digits");
-                double lotSize = rs.getDouble("lot_size");
-                char side = rs.getString("side").charAt(0);
-                double targetPrice = rs.getDouble("target_price");
-                double stoplossPrice = rs.getDouble("stoploss_price");
-                double commission = rs.getDouble("commission");
-                double swap = rs.getDouble("swap");
-                Date openTime = rs.getTimestamp("open_time");
-
-                SymbolInfo symbolInfo = new SymbolInfo(symbol, digits, 0, 0); // Adjust this to match your SymbolInfo constructor
-                ManagedOrder order = new ManagedOrder(request_identifier, accountNumber, symbolInfo, side, targetPrice, stoplossPrice);
-                order.setOrderID(orderID);
-                order.setOpenPrice(openPrice);
-                order.setLotSize(lotSize);
-                order.setCommission(commission);
-                order.setSwap(swap);
-                order.setOpenTime(openTime);
-
-                orders.add(order);
-            }
-        } catch (SQLException | OrderException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return orders;
-    }
-
     public static synchronized void replaceHistoryOrderList(LinkedList<ManagedOrder> orders) {
         String deleteSql = "DELETE FROM history_orders";
         String insertSql = "INSERT INTO history_orders(order_id, account_number, symbol, open_price, close_price, digits, lot_size, side, target_price, stoploss_price, commission, swap, open_time, close_time) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -403,17 +304,6 @@ public class OrderDB {
         }
 
         return orders;
-    }
-
-    public static synchronized void removeOpenOrder(String orderID) {
-        String sql = "DELETE FROM open_orders WHERE order_id = ?";
-
-        try (Connection conn = dataSource.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, orderID);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     public static synchronized void removeHistoryOrder(String orderID) {

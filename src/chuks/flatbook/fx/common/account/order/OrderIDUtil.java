@@ -6,6 +6,8 @@ package chuks.flatbook.fx.common.account.order;
 
 import chuks.flatbook.fx.common.account.persist.OrderDB;
 import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,13 +18,13 @@ import java.util.Map;
  * related orders which are Stoploss , Target, Delete and Close orders * Below
  * is the structure of the ID
  *
- * account-no_[value], send-market-order-id_[value],
+ * account-no_[value], time_[value], send-market-order-sn_[value],
  * send-market-order-ticket_[value], send-market-order-request-id_[value],
- * send-pending-order-id_[value], send-pending-order-ticket_[value],
- * send-pending-order-request-id_[value], modify-stoploss-order-id_[value],
- * modify-stoploss-order-request-id_[value], modify-target-order-id_[value],
- * modify-target-order-request-id_[value], delete-pending-order-id_[value],
- * delete-pending-order-request-id_[value], close-market-order-id_[value],
+ * send-pending-order-sn_[value], send-pending-order-ticket_[value],
+ * send-pending-order-request-id_[value], modify-stoploss-order-sn_[value],
+ * modify-stoploss-order-request-id_[value], modify-take-profit-order-sn_[value],
+ * modify-take-profit-order-request-id_[value], delete-pending-order-sn_[value],
+ * delete-pending-order-request-id_[value], close-market-order-sn_[value],
  * close-market-order-request-id_[value],
  *
  *
@@ -36,30 +38,32 @@ public class OrderIDUtil {
 
     private static final String STR_ACCCOUNT_NO = "account-no";
 
-    private static final String STR_SEND_MARKET_ORDER_ID = "send-market-order-id";
+    private static final String STR_TIME = "time";
+
+    private static final String STR_SEND_MARKET_ORDER_SN = "send-market-order-sn";
     private static final String STR_SEND_MARKET_ORDER_REQUEST_ID = "send-market-order-request-id";
     private static final String STR_SEND_MARKET_ORDER_TICKET = "send-market-order-ticket";
 
-    private static final String STR_SEND_PENDING_ORDER_ID = "send-pending-order-id";
+    private static final String STR_SEND_PENDING_ORDER_SN = "send-pending-order-sn";
     private static final String STR_SEND_PENDING_ORDER_REQUEST_ID = "send-pending-order-request-id";
     private static final String STR_SEND_PENDING_ORDER_TICKET = "send-pending-order-ticket";
 
-    private static final String STR_MODIFY_STOPLOSS_ORDER_ID = "modify-stoploss-order-id";
+    private static final String STR_MODIFY_STOPLOSS_ORDER_SN = "modify-stoploss-order-sn";
     private static final String STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID = "modify-stoploss-order-request-id";
 
-    private static final String STR_MODIFY_TARGET_ORDER_ID = "modify-target-order-id";
-    private static final String STR_MODIFY_TARGET_ORDER_REQUEST_ID = "modify-target-order-request-id";
+    private static final String STR_MODIFY_TAKE_PROFIT_ORDER_SN = "modify-take-profit-order-sn";
+    private static final String STR_MODIFY_TAKE_PROFIT_ORDER_REQUEST_ID = "modify-take-profit-order-request-id";
 
-    private static final String STR_MODIFY_ENTRY_PRICE_ORDER_ID = "modify-entry-price-order-id";
+    private static final String STR_MODIFY_ENTRY_PRICE_ORDER_SN = "modify-entry-price-order-sn";
     private static final String STR_MODIFY_ENTRY_PRICE_ORDER_REQUEST_ID = "modify-entry-price-order-request-id";
 
-    private static final String STR_MODIFY_HEDGE_ORDER_ID = "modify-hedge-order-id";
+    private static final String STR_MODIFY_HEDGE_ORDER_SN = "modify-hedge-order-sn";
     private static final String STR_MODIFY_HEDGE_ORDER_REQUEST_ID = "modify-hedge-order-request-id";
 
-    private static final String STR_DELETE_PENDING_ORDER_ID = "delete-pending-order-id";
+    private static final String STR_DELETE_PENDING_ORDER_SN = "delete-pending-order-sn";
     private static final String STR_DELETE_PENDING_ORDER_REQUEST_ID = "delete-pending-order-request-id";
 
-    private static final String STR_CLOSE_MARKET_ORDER_ID = "close-market-order-id";
+    private static final String STR_CLOSE_MARKET_ORDER_SN = "close-market-order-sn";
     private static final String STR_CLOSE_MARKET_ORDER_REQUEST_ID = "close-market-order-request-id";
 
     private static final String DASH_SEP = "_";
@@ -114,7 +118,7 @@ public class OrderIDUtil {
                 var family = idMap.getOrDefault(marketId,
                         new MarketOrderIDFamily(marketId));
 
-                family.modifyTargetOrderIDs.add(clOrderId);
+                family.modifyTakeProfitOrderIDs.add(clOrderId);
                 idMap.put(marketId, family);
             } else if (isCloseOrderID(clOrderId)) {
                 String marketId = decodeMarketOrderIDFrom(clOrderId);
@@ -125,6 +129,21 @@ public class OrderIDUtil {
                 idMap.put(marketId, family);
             }
         }
+
+        //sort the related order ids        
+        idMap.values().forEach((MarketOrderIDFamily family) -> {
+            family.modifyStoplossOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getStoplossOrderSN(ordId)));
+            
+            family.modifyTakeProfitOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getTargetOrderSN(ordId)));
+            
+            family.closeOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getCloseOrderSN(ordId)));
+        });
 
         return new LinkedList(idMap.values());
     }
@@ -152,7 +171,7 @@ public class OrderIDUtil {
                 var family = idMap.getOrDefault(pendingId,
                         new PendingOrderIDFamily(pendingId));
 
-                family.modifyTargetOrderIDs.add(clOrderId);
+                family.modifyTakeProfitOrderIDs.add(clOrderId);
                 idMap.put(pendingId, family);
             } else if (isEntryPriceOrderID(clOrderId)) {
                 String pendingId = decodePendingOrderIDFrom(clOrderId);
@@ -170,11 +189,29 @@ public class OrderIDUtil {
                 idMap.put(pendingId, family);
             }
         }
+        //sort the related order ids        
+        idMap.values().forEach((PendingOrderIDFamily family) -> {
+            family.modifyStoplossOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getStoplossOrderSN(ordId)));
+            
+            family.modifyTakeProfitOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getTargetOrderSN(ordId)));
+            
+            family.modifyEntryPriceOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getEntryPriceOrderSN(ordId)));
+                        
+            family.deleteOrderIDs
+                    .sort(Comparator
+                            .comparingLong(ordId -> getDeleteOrderSN(ordId)));
+        });
 
         return new LinkedList(idMap.values());
     }
 
-    static public boolean checkID(String clOrderID, String match_name) {
+    static private boolean checkID(String clOrderID, String match_name) {
         String[] comma_split = clOrderID.split(COMMA_SEP);
         for (String token : comma_split) {
             String[] dash_split = token.split(DASH_SEP);
@@ -186,7 +223,7 @@ public class OrderIDUtil {
         return false;
     }
 
-    static public String getValue(String clOrderID, String match_name) {
+    static private String getValue(String clOrderID, String match_name) {
         String[] comma_split = clOrderID.split(COMMA_SEP);
         for (String token : comma_split) {
             String[] dash_split = token.split(DASH_SEP);
@@ -208,35 +245,70 @@ public class OrderIDUtil {
     }
 
     static public boolean isStoplossOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_MODIFY_STOPLOSS_ORDER_ID);
+        return checkID(clOrderID, STR_MODIFY_STOPLOSS_ORDER_SN);
     }
 
     static public boolean isTargetOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_MODIFY_TARGET_ORDER_ID);
+        return checkID(clOrderID, STR_MODIFY_TAKE_PROFIT_ORDER_SN);
     }
 
     static public boolean isCloseOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_CLOSE_MARKET_ORDER_ID);
+        return checkID(clOrderID, STR_CLOSE_MARKET_ORDER_SN);
     }
 
     static public boolean isEntryPriceOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_MODIFY_ENTRY_PRICE_ORDER_ID);
+        return checkID(clOrderID, STR_MODIFY_ENTRY_PRICE_ORDER_SN);
     }
 
     static public boolean isModifyHedgeOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_MODIFY_HEDGE_ORDER_ID);
+        return checkID(clOrderID, STR_MODIFY_HEDGE_ORDER_SN);
     }
 
     static public boolean isDeleteOrderID(String clOrderID) {
-        return checkID(clOrderID, STR_DELETE_PENDING_ORDER_ID);
+        return checkID(clOrderID, STR_DELETE_PENDING_ORDER_SN);
     }
 
-    static public int getAccountNumberFromOrderID(String clOrdId) {
+    static public int getAccountNumber(String clOrdId) {
         String acc_no = getValue(clOrdId, STR_ACCCOUNT_NO);
         if (acc_no == null) {
             return -1;
         }
         return Integer.parseInt(acc_no);
+    }
+
+    static private long getStoplossOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_MODIFY_STOPLOSS_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    static private long getTargetOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_MODIFY_TAKE_PROFIT_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    static private long getEntryPriceOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_MODIFY_ENTRY_PRICE_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    static private long getHedgeOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_MODIFY_HEDGE_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    static private long getDeleteOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_DELETE_PENDING_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    static private long getCloseOrderSN(String clOrdId) {
+        String strSN = getValue(clOrdId, STR_CLOSE_MARKET_ORDER_SN);
+        return Long.parseLong(strSN);
+    }
+
+    public static long getTime(String clOrdId) {
+        String time = getValue(clOrdId, STR_TIME);
+        return Long.parseLong(time);
     }
 
     static public long getMarketOrderTicket(String clOrdId) {
@@ -257,14 +329,16 @@ public class OrderIDUtil {
 
     static public String createMarketOrderID(int accountNumber, String request_identifier) throws SQLException {
         return STR_ACCCOUNT_NO + DASH_SEP + accountNumber + COMMA_SEP
-                + STR_SEND_MARKET_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_TIME + DASH_SEP + System.currentTimeMillis() + COMMA_SEP
+                + STR_SEND_MARKET_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_SEND_MARKET_ORDER_REQUEST_ID + DASH_SEP + request_identifier + COMMA_SEP
                 + STR_SEND_MARKET_ORDER_TICKET + DASH_SEP + System.currentTimeMillis();
     }
 
     static public String createPendingOrderID(int accountNumber, String request_identifier) throws SQLException {
         return STR_ACCCOUNT_NO + DASH_SEP + accountNumber + COMMA_SEP
-                + STR_SEND_PENDING_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_TIME + DASH_SEP + System.currentTimeMillis() + COMMA_SEP
+                + STR_SEND_PENDING_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_SEND_PENDING_ORDER_REQUEST_ID + DASH_SEP + request_identifier + COMMA_SEP
                 + STR_SEND_PENDING_ORDER_TICKET + DASH_SEP + System.currentTimeMillis();
 
@@ -272,7 +346,7 @@ public class OrderIDUtil {
 
     static public String createModifyStoplossOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
         return marketOrPendingOrderID + COMMA_SEP
-                + STR_MODIFY_STOPLOSS_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_MODIFY_STOPLOSS_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
@@ -282,8 +356,8 @@ public class OrderIDUtil {
 
     static public String createModifyTargetOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
         return marketOrPendingOrderID + COMMA_SEP
-                + STR_MODIFY_TARGET_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
-                + STR_MODIFY_TARGET_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
+                + STR_MODIFY_TAKE_PROFIT_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_MODIFY_TAKE_PROFIT_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
     static public String createModifyTargetOrderID(ManagedOrder order, String request_identifier) throws SQLException {
@@ -292,7 +366,7 @@ public class OrderIDUtil {
 
     static public String createModifyEntryPriceOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
         return marketOrPendingOrderID + COMMA_SEP
-                + STR_MODIFY_ENTRY_PRICE_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_MODIFY_ENTRY_PRICE_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_MODIFY_ENTRY_PRICE_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
@@ -302,7 +376,7 @@ public class OrderIDUtil {
 
     static public String createModifyHedgeOrderID(String marketOrPendingOrderID, String request_identifier) throws SQLException {
         return marketOrPendingOrderID + COMMA_SEP
-                + STR_MODIFY_HEDGE_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_MODIFY_HEDGE_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_MODIFY_HEDGE_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
@@ -312,7 +386,7 @@ public class OrderIDUtil {
 
     static public String createDeleteOrderID(String pendingOrderID, String request_identifier) throws SQLException {
         return pendingOrderID + COMMA_SEP
-                + STR_DELETE_PENDING_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_DELETE_PENDING_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_DELETE_PENDING_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
@@ -322,7 +396,7 @@ public class OrderIDUtil {
 
     static public String createCloseOrderID(String marketOrderID, String request_identifier) throws SQLException {
         return marketOrderID + COMMA_SEP
-                + STR_CLOSE_MARKET_ORDER_ID + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
+                + STR_CLOSE_MARKET_ORDER_SN + DASH_SEP + OrderDB.getNewID() + COMMA_SEP
                 + STR_CLOSE_MARKET_ORDER_REQUEST_ID + DASH_SEP + request_identifier;
     }
 
@@ -346,8 +420,8 @@ public class OrderIDUtil {
     }
 
     static String getModifyOrderRequestIdentifier(String orderID) {
-        //first check if is target modification
-        String val = getValue(orderID, STR_MODIFY_TARGET_ORDER_REQUEST_ID);
+        //first check if is take-profit modification
+        String val = getValue(orderID, STR_MODIFY_TAKE_PROFIT_ORDER_REQUEST_ID);
         if (val == null) {
             //ok now check if is stoploss modification
             val = getValue(orderID, STR_MODIFY_STOPLOSS_ORDER_REQUEST_ID);

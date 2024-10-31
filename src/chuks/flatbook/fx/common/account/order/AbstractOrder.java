@@ -42,7 +42,7 @@ abstract class AbstractOrder {
     protected double lotSize;
     protected char side = Side.NONE;
     protected SymbolInfo symbolInfo;
-    protected double targetPrice;
+    protected double takeProfitPrice;
     protected double stoplossPrice;
     protected double commission;
     protected double swap;
@@ -107,7 +107,7 @@ abstract class AbstractOrder {
             }
 
             if (field_name.equals("targetPrice")) {
-                this.targetPrice = Double.parseDouble(value);
+                this.takeProfitPrice = Double.parseDouble(value);
             }
             if (field_name.equals("stoplossPrice")) {
                 this.stoplossPrice = Double.parseDouble(value);
@@ -145,7 +145,7 @@ abstract class AbstractOrder {
                 .append("|lotSize=").append(lotSize)
                 .append("|side=").append(side)
                 .append("|symbolInfo=[").append(symbolInfo.stringify()).append("]")
-                .append("|targetPrice=").append(targetPrice)
+                .append("|targetPrice=").append(takeProfitPrice)
                 .append("|stoplossPrice=").append(stoplossPrice)
                 .append("|commission=").append(commission)
                 .append("|swap=").append(swap)
@@ -161,7 +161,7 @@ abstract class AbstractOrder {
     protected void validateOrder() throws OrderException {
 
         double current_price = symbolInfo.getPrice();
-        double target_pips = Math.abs(Utils.pips(current_price, targetPrice, pip_point));
+        double target_pips = Math.abs(Utils.pips(current_price, takeProfitPrice, pip_point));
         double stoploss_pips = Math.abs(Utils.pips(current_price, stoplossPrice, pip_point));
         double pips_from_market_price = Math.abs(Utils.pips(current_price, openPrice, pip_point));
         String strCommonSuffixMsgTP_SL = "is invalid or too close - also make sure it is at least " + MINIMUM_TP_SL_PRICE_AWAY + " pips away";
@@ -169,7 +169,7 @@ abstract class AbstractOrder {
 
         switch (side) {
             case Side.BUY -> {
-                if (targetPrice > 0 && (targetPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice > current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -177,7 +177,7 @@ abstract class AbstractOrder {
                 }
             }
             case Side.SELL -> {
-                if (targetPrice > 0 && (targetPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice < current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -185,7 +185,7 @@ abstract class AbstractOrder {
                 }
             }
             case Side.BUY_LIMIT -> {
-                if (targetPrice > 0 && (targetPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice > current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -196,7 +196,7 @@ abstract class AbstractOrder {
                 }
             }
             case Side.SELL_LIMIT -> {
-                if (targetPrice > 0 && (targetPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice < current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -207,7 +207,7 @@ abstract class AbstractOrder {
                 }
             }
             case Side.BUY_STOP -> {
-                if (targetPrice > 0 && (targetPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice < current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice > current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -218,7 +218,7 @@ abstract class AbstractOrder {
                 }
             }
             case Side.SELL_STOP -> {
-                if (targetPrice > 0 && (targetPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
+                if (takeProfitPrice > 0 && (takeProfitPrice > current_price || target_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
                     throw new OrderException("Target " + strCommonSuffixMsgTP_SL);
                 }
                 if (stoplossPrice > 0 && (stoplossPrice < current_price || stoploss_pips < MINIMUM_TP_SL_PRICE_AWAY)) {
@@ -349,7 +349,7 @@ abstract class AbstractOrder {
 
     public double getTargetPrice() {
 
-        return targetPrice;
+        return takeProfitPrice;
     }
 
     public double getStoplossPrice() {

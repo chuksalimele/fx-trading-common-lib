@@ -16,7 +16,7 @@ import java.util.List;
 
         String marketOrderID;
         List<String> modifyStoplossOrderIDs = Collections.synchronizedList(new LinkedList());
-        List<String> modifyTargetOrderIDs = Collections.synchronizedList(new LinkedList());
+        List<String> modifyTakeProfitOrderIDs = Collections.synchronizedList(new LinkedList());
         List<String> closeOrderIDs = Collections.synchronizedList(new LinkedList());
 
         private MarketOrderIDFamily() {
@@ -34,8 +34,8 @@ import java.util.List;
             return modifyStoplossOrderIDs;
         }
 
-        public List<String> getModifyTargetOrderIDs() {
-            return modifyTargetOrderIDs;
+        public List<String> getModifyTakeProfitOrderIDs() {
+            return modifyTakeProfitOrderIDs;
         }
 
         public List<String> getCloseOrderIDs() {
