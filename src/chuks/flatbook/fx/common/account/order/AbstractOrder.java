@@ -347,7 +347,7 @@ abstract class AbstractOrder {
         return symbolInfo.getName();
     }
 
-    public double getTargetPrice() {
+    public double getTakeProfitPrice() {
 
         return takeProfitPrice;
     }

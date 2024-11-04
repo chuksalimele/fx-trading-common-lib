@@ -213,7 +213,7 @@ public class OrderDB {
             pstmt.setDouble(6, order.getLotSize());
             pstmt.setString(7, String.valueOf(order.getSide()));
             pstmt.setString(8, order.getSymbol());
-            pstmt.setDouble(9, order.getTargetPrice());
+            pstmt.setDouble(9, order.getTakeProfitPrice());
             pstmt.setDouble(10, order.getStoplossPrice());
             pstmt.setDouble(11, order.getCommission());
             pstmt.setDouble(12, order.getSwap());
@@ -248,7 +248,7 @@ public class OrderDB {
                     pstmt.setInt(6, order.getSymbolDigits());
                     pstmt.setDouble(7, order.getLotSize());
                     pstmt.setString(8, String.valueOf(order.getSide()));
-                    pstmt.setDouble(9, order.getTargetPrice());
+                    pstmt.setDouble(9, order.getTakeProfitPrice());
                     pstmt.setDouble(10, order.getStoplossPrice());
                     pstmt.setDouble(11, order.getCommission());
                     pstmt.setDouble(12, order.getSwap());

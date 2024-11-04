@@ -11,6 +11,7 @@ package chuks.flatbook.fx.common.util.log;
 public interface LogConst {
     static final String STR_REJECTED_IP = "REJECTED IP";    
     static final String STR_SUSPICIOUS_IP = "SUSPICIOUS IP";   
+    static final String STR_INCOMPLETE_TRANSACTION = "INCOMPLETE TRANSACTION";   
     
     static String concatLogMsg(String str1, String str2) {
         return str1 +" - "+str2;
