@@ -169,20 +169,25 @@ public class ManagedOrder extends AbstractOrder {
         return cancelledTargetOrderIDList;
     }
 
-    public void cancelStoplossOrderID(String clOrdID) {
+    public void cancelStoplossOrder(String clOrdID) {
+        stoplossPrice = 0;
         stoplossOrderID = null;
         cancelledStoplossOrderIDList.add(clOrdID);
     }
 
-    public void cancelTakeProfitOrderID(String clOrdID) {
+    public void cancelTakeProfitOrder(String clOrdID) {
+        takeProfitPrice = 0;
         takeProfitOrderID = null;
         cancelledTargetOrderIDList.add(clOrdID);
     }
 
+    
+    @Deprecated
     public void removeTakeProfitOrderID(String clOrdID) {
         takeProfitOrderID = null;
     }
 
+    @Deprecated
     public void removeStoplossOrderID(String clOrdID) {
         stoplossOrderID = null;
     }
