@@ -31,6 +31,12 @@ public class SymbolInfo {
     private boolean allowShortOnly;
     private boolean allowCloseOnly;
     private boolean noRestriction = true;//initial
+    private double time;// The last incoming tick time
+    private double close; // Close day price
+    private double low; // Low day price
+    private double high; // High day price
+    private double open;  // Open day price
+    private double lot_size;// Lot size in the base currency
 
 
     public SymbolInfo(String _name, int _digits, double tick_value, double tick_size) {
@@ -284,6 +290,70 @@ public class SymbolInfo {
 
     public double getSwapShort() {
         return swapShort;
+    }
+
+    /**
+     * The last incoming tick time
+     * 
+     * @return 
+     */
+    public double getLotSize() {
+        return lot_size;
+    }
+
+    /**
+     * Open day price
+     * 
+     * @return 
+     */
+    public double getOpen() {
+        return open;
+    }
+    
+    /**
+     * High day price
+     * 
+     * @return 
+     */
+    public double getHigh() {
+        return high;
+    }
+
+     /**
+     * Low day price
+     * 
+     * @return 
+     */
+    public double getLow() {
+        return low;
+    }
+
+     /**
+     * Close day price
+     * 
+     * @return 
+     */
+    public double getClose() {
+        return close;
+    }
+
+    /**
+     * The last incoming tick time
+     * 
+     * @return 
+     */
+    public double getTime() {
+        return time;
+    }
+
+    
+    /**
+     * Spread value in points
+     * 
+     * @return 
+     */
+    public double getSpread() {
+        return getSpreadPipette();
     }
 
 }

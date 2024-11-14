@@ -48,6 +48,8 @@ abstract class AbstractOrder {
     protected double swap;
     protected Date open_time;
     protected Date close_time;
+    protected int magic_number;
+
 
     public void setMininumTpSlPriceWay(int min_price_away){
         this.MINIMUM_TP_SL_PRICE_AWAY = min_price_away;
@@ -124,6 +126,9 @@ abstract class AbstractOrder {
             if (field_name.equals("close_time")) {
                 this.close_time = new Date(Long.parseLong(value));
             }
+            if (field_name.equals("magic_number")) {
+                this.magic_number = Integer.parseInt(value);
+            }
 
         }
     }
@@ -150,7 +155,8 @@ abstract class AbstractOrder {
                 .append("|commission=").append(commission)
                 .append("|swap=").append(swap)
                 .append("|open_time=").append(open_time)
-                .append("|close_time=").append(close_time);
+                .append("|close_time=").append(close_time)
+                .append("|magic_number=").append(magic_number);
 
         // Convert the StringBuilder to a String and return it
         return strBuilder.toString();
@@ -387,7 +393,15 @@ abstract class AbstractOrder {
     public void setCloseTime(Date _time) {
         close_time = _time;
     }
+    
+    public int getMagicNumber() {
+        return magic_number;
+    }
 
+    public void setMagicNumber(int magic_number) {
+        this.magic_number = magic_number;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Order
