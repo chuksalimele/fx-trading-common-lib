@@ -8,18 +8,15 @@ package chuks.flatbook.fx.common.account.profile;
  *
  * @author user
  */
-public class TraderAccountProfile extends BasicAccountProfile{
+public class AdminInfo extends BasicInfo{
     private long registrationTime;
     private long approvalTime;
-    private boolean isActive;
-    private boolean isEnabled;
-    private long emailVerifiedTime;
 
     // Constructor
-    public TraderAccountProfile() {
+    public AdminInfo() {
     }
     
-    public TraderAccountProfile(String str) {
+    public AdminInfo(String str) {
         
         String[] fields = str.split("|");
         for (String field : fields) {
@@ -48,15 +45,6 @@ public class TraderAccountProfile extends BasicAccountProfile{
             if (field_name.equals("approvedBy_AdminID")) {
                 this.approvedBy_AdminID = Integer.parseInt(value);
             }
-            if (field_name.equals("isActive")) {
-                this.isActive = Boolean.parseBoolean(value);
-            }
-            if (field_name.equals("isEnabled")) {
-                this.isEnabled = Boolean.parseBoolean(value);
-            }
-            if (field_name.equals("emailVerifiedTime")) {
-                this.emailVerifiedTime = Long.parseLong(value);
-            }
             if (field_name.equals("isLoggedIn")) {
                 this.isLoggedIn = Boolean.parseBoolean(value);
             }        
@@ -76,15 +64,28 @@ public class TraderAccountProfile extends BasicAccountProfile{
                 .append("|registrationTime=").append(registrationTime)
                 .append("|approvalTime=").append(approvalTime)
                 .append("|approvedBy_AdminID=").append(approvedBy_AdminID)
-                .append("|isActive=").append(isActive)
-                .append("|isEnabled=").append(isEnabled)
-                .append("|emailVerifiedTime=").append(emailVerifiedTime)
                 .append("|isLoggedIn=").append(isLoggedIn);
 
         // Convert the StringBuilder to a String and return it
         return strBuilder.toString();
-    }        
+    }
     
+    public int getAdminID() {
+        return accountNumber;
+    }
+    
+    public String getAdminName() {
+         return accountName;
+    }    
+    
+    public void setAdminID(int accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+    
+    public void setAdminName(String accountName) {
+        this.accountName = accountName;
+    }
+
     public long getRegistrationTime() {
         return registrationTime;
     }
@@ -100,30 +101,5 @@ public class TraderAccountProfile extends BasicAccountProfile{
     public void setApprovalTime(long approvalTime) {
         this.approvalTime = approvalTime;
     }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public boolean isEnabled() {
-        return isEnabled;
-    }
-
-    public void setEnabled(boolean isEnabled) {
-        this.isEnabled = isEnabled;
-    }
-
-    public long getEmailVerifiedTime() {
-        return emailVerifiedTime;
-    }
-
-    public void setEmailVerifiedTime(long emailVerifiedTime) {
-        this.emailVerifiedTime = emailVerifiedTime;
-    }
-
 
 }

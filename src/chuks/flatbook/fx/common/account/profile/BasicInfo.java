@@ -8,7 +8,7 @@ package chuks.flatbook.fx.common.account.profile;
  *
  * @author user
  */
-abstract public class BasicAccountProfile {
+abstract public class BasicInfo {
     protected int accountNumber;
     protected String accountName;
     protected String email;
@@ -17,10 +17,10 @@ abstract public class BasicAccountProfile {
     protected boolean isLoggedIn;
 
     // Constructor
-    public BasicAccountProfile() {
+    public BasicInfo() {
     }
     
-    public BasicAccountProfile(String str) {
+    public BasicInfo(String str) {
         
         String[] fields = str.split("|");
         for (int i = 0; i < fields.length; i++) {
