@@ -21,10 +21,10 @@ public class SymbolInfo {
     private double price; //current market price of the symbol updated by MarketDataRequest
     private double swapLong;
     private double swapShort;
-    
+
     private double minAllowedVolume;
     private double maxAllowedVolume;
-    
+
     //Symbol Restrictions
     private boolean disabled;
     private boolean allowLongOnly;
@@ -37,19 +37,32 @@ public class SymbolInfo {
     private double high; // High day price
     private double open;  // Open day price
     private double lot_size;// Lot size in the base currency
-
+    private boolean isEmptyInfo;
 
     public SymbolInfo(String _name, int _digits, double tick_value, double tick_size) {
+        this(_name, _digits, tick_value, tick_size, false);
+    }
+
+    private SymbolInfo(String _name, int _digits, double tick_value, double tick_size, boolean is_empty) {
         this.name = _name;
         this.tickValue = tick_value;
         this.tickSize = tick_size;
         this.digits = Math.abs(_digits);
         this.pipette_point = Math.pow(10, -_digits);
         this.pip_point = pipette_point * 10;
+        isEmptyInfo = is_empty;
+    }
+
+    public static SymbolInfo createEmptyInfo(String _name) {
+        return new SymbolInfo(_name, 0, 0, 0, true);
+    }
+
+    public boolean isEmtpyInfo() {
+        return isEmptyInfo;
     }
 
     public SymbolInfo(String str) {
-        String[] fields = str.split("|");
+        String[] fields = str.split("\\|");
         for (int i = 0; i < fields.length; i++) {
             String[] token = fields[i].split("=");
             String field_name = token[0];
@@ -87,7 +100,7 @@ public class SymbolInfo {
             }
             if (field_name.equals("swapShort")) {
                 this.swapShort = Double.parseDouble(value);
-            }            
+            }
             if (field_name.equals("minAllowedVolume")) {
                 this.minAllowedVolume = Double.parseDouble(value);
             }
@@ -108,6 +121,9 @@ public class SymbolInfo {
             }
             if (field_name.equals("noRestriction")) {
                 this.noRestriction = Boolean.parseBoolean(value);
+            }
+            if (field_name.equals("isEmptyInfo")) {
+                this.isEmptyInfo = Boolean.parseBoolean(value);
             }
         }
     }
@@ -134,7 +150,8 @@ public class SymbolInfo {
                 .append("|allowLongOnly=").append(allowLongOnly)
                 .append("|allowShortOnly=").append(allowShortOnly)
                 .append("|allowCloseOnly=").append(allowCloseOnly)
-                .append("|noRestriction=").append(noRestriction);
+                .append("|noRestriction=").append(noRestriction)
+                .append("|isEmptyInfo=").append(isEmptyInfo);
 
         // Convert the StringBuilder to a String and return it
         return strBuilder.toString();
@@ -176,7 +193,7 @@ public class SymbolInfo {
         if (bid <= 0 || ask <= 0) {
             return 0;
         }
-        return (int)((ask - bid) / pipette_point);
+        return (int) ((ask - bid) / pipette_point);
     }
 
     public double getTickValue() {
@@ -221,59 +238,59 @@ public class SymbolInfo {
     }
 
     public void setDisable() {
-         disabled = true;//set true
-         allowLongOnly = false;
-         allowShortOnly = false;
-         allowCloseOnly = false;
-         noRestriction = false;
+        disabled = true;//set true
+        allowLongOnly = false;
+        allowShortOnly = false;
+        allowCloseOnly = false;
+        noRestriction = false;
     }
-    
+
     public boolean isAllowLongTradesOnly() {
         return allowLongOnly;
     }
 
     public void setAllowLongTradesOnly() {
-         disabled = false;
-         allowLongOnly = true;//set true
-         allowShortOnly = false;
-         allowCloseOnly = false;
-         noRestriction = false;
+        disabled = false;
+        allowLongOnly = true;//set true
+        allowShortOnly = false;
+        allowCloseOnly = false;
+        noRestriction = false;
     }
-    
+
     public boolean isAllowShortTradesOnly() {
         return allowShortOnly;
     }
 
     public void setAllowShortTradesOnly() {
-         disabled = false;
-         allowLongOnly = false;
-         allowShortOnly = true;//set true
-         allowCloseOnly = false;
-         noRestriction = false;
+        disabled = false;
+        allowLongOnly = false;
+        allowShortOnly = true;//set true
+        allowCloseOnly = false;
+        noRestriction = false;
     }
-    
+
     public boolean isAllowCloseTradesOnly() {
         return allowCloseOnly;
     }
-    
+
     public void setAllowCloseTradesOnly() {
-         disabled = false;
-         allowLongOnly = false;
-         allowShortOnly = false;
-         allowCloseOnly = true;//set true
-         noRestriction = false;
+        disabled = false;
+        allowLongOnly = false;
+        allowShortOnly = false;
+        allowCloseOnly = true;//set true
+        noRestriction = false;
     }
-    
+
     public boolean isNoRestriction() {
         return noRestriction;
     }
-    
+
     public void setNoRestriction() {
-         disabled = false;
-         allowLongOnly = false;
-         allowShortOnly = false;
-         allowCloseOnly = false;
-         noRestriction = true;//set true
+        disabled = false;
+        allowLongOnly = false;
+        allowShortOnly = false;
+        allowCloseOnly = false;
+        noRestriction = true;//set true
     }
 
     public double getMinAllowedVolume() {
@@ -294,8 +311,8 @@ public class SymbolInfo {
 
     /**
      * The last incoming tick time
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getLotSize() {
         return lot_size;
@@ -303,35 +320,35 @@ public class SymbolInfo {
 
     /**
      * Open day price
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getOpen() {
         return open;
     }
-    
+
     /**
      * High day price
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getHigh() {
         return high;
     }
 
-     /**
+    /**
      * Low day price
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getLow() {
         return low;
     }
 
-     /**
+    /**
      * Close day price
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getClose() {
         return close;
@@ -339,18 +356,17 @@ public class SymbolInfo {
 
     /**
      * The last incoming tick time
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getTime() {
         return time;
     }
 
-    
     /**
      * Spread value in points
-     * 
-     * @return 
+     *
+     * @return
      */
     public double getSpread() {
         return getSpreadPipette();
