@@ -38,6 +38,7 @@ public class SymbolInfo {
     private double open;  // Open day price
     private double lot_size;// Lot size in the base currency
     private boolean isEmptyInfo;
+    final static private String FIELD_SEPARATOR = "\n";
 
     public SymbolInfo(String _name, int _digits, double tick_value, double tick_size) {
         this(_name, _digits, tick_value, tick_size, false);
@@ -61,13 +62,16 @@ public class SymbolInfo {
         return isEmptyInfo;
     }
 
-    public SymbolInfo(String str) {
-        String[] fields = str.split("\\|");
-        for (int i = 0; i < fields.length; i++) {
-            String[] token = fields[i].split("=");
+    public SymbolInfo(String str) {        
+        this(str, FIELD_SEPARATOR);
+    }
+    
+    public SymbolInfo(String str, String filed_sep) {
+        String[] fields = str.split(filed_sep);
+        for (String field : fields) {
+            String[] token = field.split("=");
             String field_name = token[0];
             String value = token[1];
-
             if (field_name.equals("name")) {
                 this.name = value;
             }
@@ -129,29 +133,33 @@ public class SymbolInfo {
     }
 
     public String stringify() {
+        return stringify(FIELD_SEPARATOR);
+    }
+    
+    public String stringify(String field_sep) {
         // Initialize the StringBuilder
         StringBuilder strBuilder = new StringBuilder();
 
         // Append each field to the StringBuilder
         strBuilder.append("name=").append(name)
-                .append("|pipette_point=").append(pipette_point)
-                .append("|pip_point=").append(pip_point)
-                .append("|digits=").append(digits)
-                .append("|tickValue=").append(tickValue)
-                .append("|tickSize=").append(tickSize)
-                .append("|bid=").append(bid)
-                .append("|ask=").append(ask)
-                .append("|price=").append(price)
-                .append("|swapLong=").append(swapLong)
-                .append("|swapShort=").append(swapShort)
-                .append("|minAllowedVolume=").append(minAllowedVolume)
-                .append("|maxAllowedVolume=").append(maxAllowedVolume)
-                .append("|disabled=").append(disabled)
-                .append("|allowLongOnly=").append(allowLongOnly)
-                .append("|allowShortOnly=").append(allowShortOnly)
-                .append("|allowCloseOnly=").append(allowCloseOnly)
-                .append("|noRestriction=").append(noRestriction)
-                .append("|isEmptyInfo=").append(isEmptyInfo);
+                .append(field_sep).append("pipette_point=").append(pipette_point)
+                .append(field_sep).append("pip_point=").append(pip_point)
+                .append(field_sep).append("digits=").append(digits)
+                .append(field_sep).append("tickValue=").append(tickValue)
+                .append(field_sep).append("tickSize=").append(tickSize)
+                .append(field_sep).append("bid=").append(bid)
+                .append(field_sep).append("ask=").append(ask)
+                .append(field_sep).append("price=").append(price)
+                .append(field_sep).append("swapLong=").append(swapLong)
+                .append(field_sep).append("swapShort=").append(swapShort)
+                .append(field_sep).append("minAllowedVolume=").append(minAllowedVolume)
+                .append(field_sep).append("maxAllowedVolume=").append(maxAllowedVolume)
+                .append(field_sep).append("disabled=").append(disabled)
+                .append(field_sep).append("allowLongOnly=").append(allowLongOnly)
+                .append(field_sep).append("allowShortOnly=").append(allowShortOnly)
+                .append(field_sep).append("allowCloseOnly=").append(allowCloseOnly)
+                .append(field_sep).append("noRestriction=").append(noRestriction)
+                .append(field_sep).append("isEmptyInfo=").append(isEmptyInfo);
 
         // Convert the StringBuilder to a String and return it
         return strBuilder.toString();

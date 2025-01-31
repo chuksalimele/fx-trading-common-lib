@@ -11,8 +11,12 @@ package chuks.flatbook.fx.common.account.order;
  public class Order extends AbstractOrder{
 
 
-    public Order(String str) {        
-        setFields(str);
+    public Order(String str_order) {        
+        this(str_order, FIELD_SEPARATOR, NESTED_FIELD_SEPARATOR);
+    }
+
+    public Order(String str_order, String field_sep, String nested_field_sep) {        
+        setFields(str_order, field_sep, nested_field_sep);
     }
 
     public Order(SymbolInfo symbol_info, char side, double target_price, double stoploss_price) throws OrderException {

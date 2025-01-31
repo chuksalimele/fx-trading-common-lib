@@ -49,13 +49,16 @@ public class ManagedOrder extends AbstractOrder {
         }
     }
 
-    public ManagedOrder(String req_identifier, int account_number, String str) throws OrderException, SQLException {
-
-        this.accountNumber = account_number;
-        this.setFields(str);
-        finalizeInit(req_identifier, takeProfitPrice, stoplossPrice);
+    public ManagedOrder(String req_identifier, int account_number, String str_order) throws OrderException, SQLException {
+        this(req_identifier, account_number,str_order, FIELD_SEPARATOR, NESTED_FIELD_SEPARATOR);
     }
 
+    public ManagedOrder(String req_identifier, int account_number, String str_order, String field_sep, String nested_field_sep) throws OrderException, SQLException {
+
+        this.accountNumber = account_number;
+        this.setFields(str_order,  field_sep, nested_field_sep);
+        finalizeInit(req_identifier, takeProfitPrice, stoplossPrice);
+    }
     private void finalizeInit(String req_identifier, double target_price, double stoploss_price) throws SQLException, OrderException {
 
         switch (side) {

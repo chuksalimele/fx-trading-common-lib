@@ -49,6 +49,8 @@ abstract class AbstractOrder {
     protected Date open_time;
     protected Date close_time;
     protected int magic_number;
+    static protected String FIELD_SEPARATOR = "\n";
+    static protected String NESTED_FIELD_SEPARATOR = "\t";
 
 
     public void setMininumTpSlPriceWay(int min_price_away){
@@ -59,13 +61,12 @@ abstract class AbstractOrder {
         this.MINIMUM_PENDING_STOP_LIMIT_PRICE_AWAY = min_price_away;
     }
     
-    protected void setFields(String str) {
-        String[] fields = str.split("|");
-        for (int i = 0; i < fields.length; i++) {
-            String[] token = fields[i].split("=");
+    protected void setFields(String str, String field_sep, String nested_field_sep) {
+        String[] fields = str.split(field_sep);
+        for (String field : fields) {
+            String[] token = field.split("=");
             String field_name = token[0];
             String value = token[1];
-
             if (field_name.equals("orderID")) {
                 this.orderID = value;
             }
@@ -105,9 +106,8 @@ abstract class AbstractOrder {
             if (field_name.equals("symbolInfo")) {
                 //remove the enclosing bracket
                 value = value.substring(1, value.length() - 1);
-                this.symbolInfo = new SymbolInfo(value);
+                this.symbolInfo = new SymbolInfo(value, nested_field_sep);
             }
-
             if (field_name.equals("targetPrice")) {
                 this.takeProfitPrice = Double.parseDouble(value);
             }
@@ -129,34 +129,37 @@ abstract class AbstractOrder {
             if (field_name.equals("magic_number")) {
                 this.magic_number = Integer.parseInt(value);
             }
-
         }
     }
-
+    
     public String stringify() {
+        return stringify(FIELD_SEPARATOR, NESTED_FIELD_SEPARATOR);
+    }
+
+    public String stringify(String field_sep, String nested_field_sep) {
         // Initialize the StringBuilder with an estimate of the final size
         StringBuilder strBuilder = new StringBuilder();
 
-        strBuilder.append("|orderID=").append(orderID)
-                .append("|marketOrderRequestIdentifier=").append(marketOrderRequestIdentifier)
-                .append("|pendingOrderRequestIdentifier=").append(pendingOrderRequestIdentifier)
-                .append("|modifiyOrderRequestIdentifier=").append(modifiyOrderRequestIdentifier)
-                .append("|deleteOrderRequestIdentifier=").append(deleteOrderRequestIdentifier)
-                .append("|closeOrderRequestIdentifier=").append(closeOrderRequestIdentifier)                
-                .append("|ticket=").append(ticket)
-                .append("|openPrice=").append(openPrice)
-                .append("|closePrice=").append(closePrice)
-                .append("|pip_point=").append(pip_point)
-                .append("|lotSize=").append(lotSize)
-                .append("|side=").append(side)
-                .append("|symbolInfo=[").append(symbolInfo.stringify()).append("]")
-                .append("|targetPrice=").append(takeProfitPrice)
-                .append("|stoplossPrice=").append(stoplossPrice)
-                .append("|commission=").append(commission)
-                .append("|swap=").append(swap)
-                .append("|open_time=").append(open_time)
-                .append("|close_time=").append(close_time)
-                .append("|magic_number=").append(magic_number);
+        strBuilder.append("orderID=").append(orderID)
+                .append(field_sep).append("marketOrderRequestIdentifier=").append(marketOrderRequestIdentifier)
+                .append(field_sep).append("pendingOrderRequestIdentifier=").append(pendingOrderRequestIdentifier)
+                .append(field_sep).append("modifiyOrderRequestIdentifier=").append(modifiyOrderRequestIdentifier)
+                .append(field_sep).append("deleteOrderRequestIdentifier=").append(deleteOrderRequestIdentifier)
+                .append(field_sep).append("closeOrderRequestIdentifier=").append(closeOrderRequestIdentifier)                
+                .append(field_sep).append("ticket=").append(ticket)
+                .append(field_sep).append("openPrice=").append(openPrice)
+                .append(field_sep).append("closePrice=").append(closePrice)
+                .append(field_sep).append("pip_point=").append(pip_point)
+                .append(field_sep).append("lotSize=").append(lotSize)
+                .append(field_sep).append("side=").append(side)
+                .append(field_sep).append("symbolInfo=[").append(symbolInfo.stringify(nested_field_sep)).append("]")
+                .append(field_sep).append("targetPrice=").append(takeProfitPrice)
+                .append(field_sep).append("stoplossPrice=").append(stoplossPrice)
+                .append(field_sep).append("commission=").append(commission)
+                .append(field_sep).append("swap=").append(swap)
+                .append(field_sep).append("open_time=").append(open_time)
+                .append(field_sep).append("close_time=").append(close_time)
+                .append(field_sep).append("magic_number=").append(magic_number);
 
         // Convert the StringBuilder to a String and return it
         return strBuilder.toString();
